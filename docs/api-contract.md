@@ -3,6 +3,9 @@
 Base path: `/api/v1`
 Format: JSON
 Auth: to be added later (JWT). For now, assume endpoints require authentication except health.
+Tenanting: every request is organization-scoped. For v1, the client must provide an `X-Org-Id` header; in the future, this will come from JWT claims.
+
+---
 
 ## Cross-cutting
 
@@ -50,15 +53,15 @@ Auth: to be added later (JWT). For now, assume endpoints require authentication 
 * `POST /projects`
 * Request:
 
-    * `name` (required, ≤100)
-    * `key` (required, 2–10, uppercase A-Z, immutable)
-    * `description` (optional, ≤10000)
+  * `name` (required, ≤100)
+  * `key` (required, 2–10, uppercase A-Z, immutable)
+  * `description` (optional, ≤10000)
 * Responses:
 
-    * 201 with created project
-    * 400 on validation error
-    * 409 if `key` already exists
-* Sort allowlist (for list): `name`, `createdAt`.
+  * 201 with created project
+  * 400 on validation error
+  * 409 if `key` already exists *within the same organization*
+* Sort allowlist: `name`, `createdAt`.
 
 ### Get Project by ID
 
@@ -73,16 +76,23 @@ Auth: to be added later (JWT). For now, assume endpoints require authentication 
 
 ### Update Project
 
-* Choose one for v1: **PUT** (full) or **PATCH** (partial). Baseline: **PATCH**.
 * `PATCH /projects/{id}`
 * Updatable: `name`, `description` (not `key`)
-* 200 with updated, 404 not found, 400 invalid
+* Responses:
 
-### Delete Project (optional in v1)
+  * 200 with updated project
+  * 404 not found
+  * 400 invalid request
+
+### Delete Project
 
 * `DELETE /projects/{id}`
-* 204 or 404
-* Consider admin-only later
+* Responses:
+
+  * 204 success
+  * 404 not found
+* **Side-effect:** all Issues in the Project are marked `CLOSED` transactionally; Comments remain.
+* Consider admin-only later.
 
 ---
 
@@ -93,16 +103,16 @@ Auth: to be added later (JWT). For now, assume endpoints require authentication 
 * `POST /issues`
 * Request:
 
-    * `projectId` (required)
-    * `title` (required, ≤140)
-    * `description` (optional, ≤10000)
-    * `assigneeId` (optional)
-    * `priority` (required: `LOW|MEDIUM|HIGH`)
-* Response:
+  * `projectId` (required, must belong to same organization)
+  * `title` (required, ≤140)
+  * `description` (optional, ≤10000)
+  * `assigneeId` (optional, must be active user in same organization)
+  * `priority` (required: `LOW|MEDIUM|HIGH`)
+* Responses:
 
-    * 201 with issue
-    * 400 validation
-    * 404 if `projectId` or `assigneeId` not found (or inactive)
+  * 201 created issue
+  * 400 validation errors
+  * 404 project or assignee not found/inactive
 
 ### Get Issue by ID
 
@@ -114,31 +124,36 @@ Auth: to be added later (JWT). For now, assume endpoints require authentication 
 * `GET /issues`
 * Filters (all optional):
 
-    * `projectId` (UUID)
-    * `status` (enum)
-    * `priority` (enum)
-    * `assigneeId` (UUID)
-    * `titleContains` (string; case-insensitive substring on title only)
+  * `projectId` (UUID)
+  * `status` (enum)
+  * `priority` (enum)
+  * `assigneeId` (UUID)
+  * `titleContains` (string; case-insensitive substring search on `title`)
 * Pagination + sorting
 * Sort allowlist: `createdAt`, `priority`, `status`, `title`
 
-### Update Issue (fields & transitions)
+### Update Issue
 
 * `PATCH /issues/{id}`
 * Updatable:
 
-    * `title`, `description`, `assigneeId`, `priority`, `status`
+  * `title`, `description`, `assigneeId`, `priority`, `status`
 * Rules:
 
-    * `status` must follow the transition table in domain doc
-    * If setting `assigneeId`, user must be active
-* 200 updated, 400 invalid, 404 not found, 409 illegal transition
+  * `status` must follow the transition table (CLOSED is terminal)
+  * If setting `assigneeId`, user must be active
+* Responses:
 
-### Delete Issue (optional in v1)
+  * 200 updated
+  * 400 invalid request
+  * 404 not found
+  * 409 if illegal status transition
+
+### Delete Issue
 
 * `DELETE /issues/{id}`
 * 204 or 404
-* Consider disallow if `status=CLOSED` in v1
+* For v1, deletion may be disabled if `status=CLOSED`.
 
 ---
 
@@ -149,45 +164,46 @@ Auth: to be added later (JWT). For now, assume endpoints require authentication 
 * `POST /issues/{id}/comments`
 * Request:
 
-    * `body` (required, 1–10000)
-* Author is the authenticated user (server-side), for now accept `authorId` as input if auth not implemented yet.
+  * `body` (required, 1–10000)
+* Author is the authenticated user (future); for now, `authorId` may be accepted as input.
 * Responses:
 
-    * 201 with comment
-    * 404 if issue not found
-    * 400 validation
+  * 201 created comment
+  * 400 validation error
+  * 404 if issue not found
 
 ### List Comments
 
 * `GET /issues/{id}/comments`
-* Pagination + sort by `createdAt` only (asc|desc)
+* Pagination + sort by `createdAt` (asc|desc)
 * 200 or 404 if issue not found
 
 ---
 
-## Users (minimal for v1; full user management comes with Auth)
+## Users (minimal for v1; full management comes with Auth)
 
-* `GET /users` — list users (pagination, sort by `username` or `displayName`)
+* `GET /users` — list users (pagination, sort by `username`, `displayName`)
 * `GET /users/{id}` — get user
-* `POST /users` — create user (for now, to bootstrap data)
+* `POST /users` — create user (bootstrap only)
 
-    * `username`, `displayName`, `email`, `active` (default true)
-* Optional updates:
+  * `username`, `displayName`, `email`, `active` (default true)
+* `PATCH /users/{id}` — update `displayName`, `active`
 
-    * `PATCH /users/{id}` — update `displayName`, `active`
-* Privacy:
+**Privacy**
 
-    * Email may be omitted from responses in unauthenticated contexts (future step)
+* `password` never exposed.
+* `email` returned in v1 responses but may be hidden when auth is added.
 
 ---
 
 ## Response field baselines
 
-### Project (response)
+### Project
 
 ```
 {
   "id": "uuid",
+  "organizationId": "uuid",
   "name": "string",
   "key": "string",
   "description": "string|null",
@@ -196,11 +212,12 @@ Auth: to be added later (JWT). For now, assume endpoints require authentication 
 }
 ```
 
-### Issue (response)
+### Issue
 
 ```
 {
   "id": "uuid",
+  "organizationId": "uuid",
   "projectId": "uuid",
   "assigneeId": "uuid|null",
   "title": "string",
@@ -212,11 +229,12 @@ Auth: to be added later (JWT). For now, assume endpoints require authentication 
 }
 ```
 
-### Comment (response)
+### Comment
 
 ```
 {
   "id": "uuid",
+  "organizationId": "uuid",
   "issueId": "uuid",
   "authorId": "uuid",
   "body": "string",
@@ -225,11 +243,12 @@ Auth: to be added later (JWT). For now, assume endpoints require authentication 
 }
 ```
 
-### User (response)
+### User
 
 ```
 {
   "id": "uuid",
+  "organizationId": "uuid",
   "username": "string",
   "displayName": "string",
   "email": "string",
@@ -247,15 +266,5 @@ Auth: to be added later (JWT). For now, assume endpoints require authentication 
 * Reject unknown sort fields with 400.
 * Consistent `Content-Type: application/json`.
 * Versioning via path `/api/v1`; only additive changes within v1.
-
----
-
-## Open questions to finalize (fill these before coding)
-
-1. Will `Project.key` be globally unique or per organization/tenant?
-2. Do we allow deleting a `Project` that still has `Issues`? If yes, what happens to issues?
-3. Should `Issue.CLOSED` be terminal in v1 (no reopen) or allow `CLOSED→IN_PROGRESS`?
-4. Should `titleContains` be case-insensitive only, or also support full-text later?
-5. What fields are returned/hidden for `User` when auth is added?
 
 ---
