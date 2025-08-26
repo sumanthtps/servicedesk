@@ -1,0 +1,1 @@
+Java 21, Boot 3.3.x, Maven
