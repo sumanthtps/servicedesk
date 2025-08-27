@@ -1,8 +1,8 @@
 CREATE TABLE organizations (
     id UUID PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE users (
@@ -12,8 +12,8 @@ CREATE TABLE users (
     display_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL,
     active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     UNIQUE (organization_id, username),
     UNIQUE (organization_id, email)
 );
@@ -24,10 +24,11 @@ CREATE TABLE projects (
     name VARCHAR(100) NOT NULL,
     key VARCHAR(10) NOT NULL,
     description TEXT,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     UNIQUE (organization_id, name),
-    UNIQUE (organization_id, key)
+    UNIQUE (organization_id, key),
+    CHECK(key ~ '^[A-Z]{2,10}$')
 );
 
 CREATE TABLE issues (
@@ -37,10 +38,10 @@ CREATE TABLE issues (
     assignee_id UUID REFERENCES users(id),
     title VARCHAR(140) NOT NULL,
     description TEXT,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('OPEN','IN_PROGRESS','RESOLVED','CLOSED')),
-    priority VARCHAR(10) NOT NULL CHECK (priority IN ('LOW','MEDIUM','HIGH')),
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
+    status VARCHAR(20) NOT NULL CHECK (status IN ('OPEN','IN_PROGRESS','RESOLVED','CLOSED')) DEFAULT 'OPEN',
+    priority VARCHAR(10) NOT NULL CHECK (priority IN ('LOW','MEDIUM','HIGH')) DEFAULT 'MEDIUM',
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE INDEX idx_issues_project_status ON issues (project_id, status, priority, created_at);
@@ -53,8 +54,8 @@ CREATE TABLE comments (
     issue_id UUID NOT NULL REFERENCES issues(id),
     author_id UUID NOT NULL REFERENCES users(id),
     body TEXT NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE INDEX idx_comments_issue_created ON comments (issue_id, created_at);
