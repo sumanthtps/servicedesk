@@ -3,6 +3,7 @@ package com.servicedesk.common.web;
 import com.servicedesk.common.error.ApiError;
 import com.servicedesk.common.error.ApiError.FieldError;
 import com.servicedesk.common.error.ConflictException;
+import com.servicedesk.common.error.InvalidOrganizationException;
 import com.servicedesk.common.error.InvalidSortFieldException;
 import com.servicedesk.common.error.InvalidUuidException;
 import com.servicedesk.common.error.ResourceNotFoundException;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -149,6 +151,16 @@ public class GlobalExceptionHandler {
                 null);
     }
 
+    // ---- 404: not found ----
+    @ExceptionHandler(InvalidOrganizationException.class)
+    public ResponseEntity<ApiError> onInValidOrganization(InvalidOrganizationException ex, HttpServletRequest req) {
+        return respond(req, HttpStatus.NOT_FOUND,
+                "https://api.servicedesk/errors/not-authorized-org",
+                "Current organization is not authorized",
+                ex.getMessage(),
+                null);
+    }
+
     // ---- 409: conflict (duplicates, unique constraint) ----
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ApiError> onConflict(ConflictException ex, HttpServletRequest req) {
@@ -204,11 +216,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> onUnhandled(Exception ex, HttpServletRequest req) {
         // Log ex on server side; keep client detail generic
+        List<FieldError> fieldErrors = new ArrayList<>();
+        FieldError error = new FieldError("Error", ex.getMessage());
+        fieldErrors.add(error);
         return respond(req, HttpStatus.INTERNAL_SERVER_ERROR,
                 "https://api.servicedesk/errors/internal",
                 "Internal server error",
                 "Unexpected error.",
-                null);
+                fieldErrors
+        );
     }
 
     @AfterThrowing("within(@org.springframework.web.bind.annotation.RestController *)")

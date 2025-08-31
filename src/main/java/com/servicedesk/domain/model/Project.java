@@ -1,13 +1,18 @@
 package com.servicedesk.domain.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+
 import java.util.UUID;
 
 @Entity
 @Table(name = "projects",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_projects_org_name", columnNames = {"organization_id","name"}),
-                @UniqueConstraint(name = "uk_projects_org_key",  columnNames = {"organization_id","key"})
+                @UniqueConstraint(name = "uk_projects_org_name", columnNames = {"organization_id", "name"}),
+                @UniqueConstraint(name = "uk_projects_org_key", columnNames = {"organization_id", "key"})
         })
 public class Project extends Audited {
 
@@ -28,7 +33,8 @@ public class Project extends Audited {
     @Column(name = "description", columnDefinition = "text")
     private String description; // ≤ 10000 by contract (enforced in DTO)
 
-    protected Project() {}
+    public Project() {
+    }
 
     public Project(UUID id, UUID organizationId, String name, String key, String description) {
         this.id = id;
@@ -38,12 +44,43 @@ public class Project extends Audited {
         this.description = description;
     }
 
-    public UUID getId() { return id; }
-    public UUID getOrganizationId() { return organizationId; }
-    public String getName() { return name; }
-    public String getKey() { return key; }
-    public String getDescription() { return description; }
+    public UUID getId() {
+        return id;
+    }
 
-    public void setName(String name) { this.name = name; }
-    public void setDescription(String description) { this.description = description; }
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public UUID getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(UUID organizationId) {
+        this.organizationId = organizationId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 }
