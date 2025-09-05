@@ -14,6 +14,8 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
 
     boolean existsByOrganizationIdAndKey(UUID orgId, String key);
 
+    boolean existsByIdAndOrganizationId(UUID orgId, UUID id);
+
     boolean existsByOrganizationIdAndNameAndIdNot(UUID orgId, String name, UUID id);
 
     boolean existsByOrganizationIdAndName(UUID orgId, String name);

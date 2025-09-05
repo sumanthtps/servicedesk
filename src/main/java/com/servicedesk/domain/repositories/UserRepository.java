@@ -9,8 +9,12 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface UserRepository  extends JpaRepository<User, UUID> {
+public interface UserRepository extends JpaRepository<User, UUID> {
     Page<User> findByOrganizationId(UUID orgId, Pageable page);
+
     boolean existsByOrganizationIdAndUsername(UUID orgId, String username);
+
     boolean existsByOrganizationIdAndEmail(UUID orgId, String email);
+
+    boolean existsByIdAndOrganizationId(UUID id, UUID orgId);
 }

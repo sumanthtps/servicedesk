@@ -2,7 +2,14 @@ package com.servicedesk.domain.model;
 
 import com.servicedesk.common.enums.Priority;
 import com.servicedesk.common.enums.Status;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+
 import java.util.UUID;
 
 @Entity
@@ -41,7 +48,8 @@ public class Issue extends Audited {
     @Column(name = "priority", nullable = false, length = 10)
     private Priority priority;
 
-    protected Issue() {}
+    public Issue() {
+    }
 
     public Issue(UUID id, UUID organizationId, UUID projectId, String title, Priority priority) {
         this.id = id;
@@ -52,18 +60,67 @@ public class Issue extends Audited {
         this.status = Status.OPEN;
     }
 
-    public UUID getId() { return id; }
-    public UUID getOrganizationId() { return organizationId; }
-    public UUID getProjectId() { return projectId; }
-    public UUID getAssigneeId() { return assigneeId; }
-    public String getTitle() { return title; }
-    public String getDescription() { return description; }
-    public Status getStatus() { return status; }
-    public Priority getPriority() { return priority; }
+    public UUID getId() {
+        return id;
+    }
 
-    public void setAssigneeId(UUID assigneeId) { this.assigneeId = assigneeId; }
-    public void setTitle(String title) { this.title = title; }
-    public void setDescription(String description) { this.description = description; }
-    public void setStatus(Status status) { this.status = status; }
-    public void setPriority(Priority priority) { this.priority = priority; }
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public UUID getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(UUID organizationId) {
+        this.organizationId = organizationId;
+    }
+
+    public UUID getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(UUID projectId) {
+        this.projectId = projectId;
+    }
+
+    public UUID getAssigneeId() {
+        return assigneeId;
+    }
+
+    public void setAssigneeId(UUID assigneeId) {
+        this.assigneeId = assigneeId;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
 }

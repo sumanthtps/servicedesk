@@ -1,6 +1,8 @@
 package com.servicedesk.api.dto.issue;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.servicedesk.domain.model.Issue;
+
 import java.time.Instant;
 
 public class IssueResponse {
@@ -12,12 +14,31 @@ public class IssueResponse {
     private String description;
     private String status;
     private String priority;
-
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
     private Instant createdAt;
-
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
     private Instant updatedAt;
+
+    public IssueResponse(Issue issue) {
+        this.id = issue.getId()
+                .toString();
+        this.projectId = issue.getProjectId()
+                .toString();
+        this.assigneeId = issue.getAssigneeId() != null ? issue.getAssigneeId()
+                .toString() : null;
+        this.title = issue.getTitle();
+        this.description = issue.getDescription();
+        this.status = issue.getStatus()
+                .name();
+        this.priority = issue.getPriority()
+                .name();
+        this.createdAt = issue.getCreatedAt();
+        this.updatedAt = issue.getUpdatedAt();
+    }
+
+    public static IssueResponse fromEntity(Issue issue) {
+        return new IssueResponse(issue);
+    }
 
     public String getId() {
         return id;
