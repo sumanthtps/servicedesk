@@ -1,6 +1,7 @@
 package com.servicedesk.api.dto.comment;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class CommentUpdateRequest {
@@ -9,6 +10,9 @@ public class CommentUpdateRequest {
     @Size(min = 1, max = 10000, message = "body must be 1–10000 characters")
     private String body;
 
+
+    @Pattern(regexp = "^[0-9a-fA-F-]{36}$", message = "authorId must be a UUID")
+    @NotBlank(message = "authorId is required")
     private String authorId;
 
     public String getBody() {

@@ -158,14 +158,17 @@ public class IssueServiceImpl implements IssueService {
             existingIssue.setAssigneeId(UUID.fromString(issueUpdateRequest.getAssigneeId()));
         }
         if (issueUpdateRequest.getPriority() != null) {
-            existingIssue.setPriority(Enum.valueOf(Priority.class, issueUpdateRequest.getPriority()));
+            existingIssue.setPriority(Priority.valueOf(issueUpdateRequest.getPriority()
+                    .trim()
+                    .toUpperCase()));
         }
         if (issueUpdateRequest.getStatus() != null) {
             Status currentStatus = existingIssue.getStatus();
             Status newStatus = currentStatus;
             if (StringUtils.hasText(issueUpdateRequest.getStatus())) {
                 newStatus = Status.valueOf(issueUpdateRequest.getStatus()
-                        .trim());
+                        .trim()
+                        .toUpperCase());
             }
             Set<Status> allowedTransitions = Constants.ALLOWED_TRANSITIONS.get(currentStatus);
 

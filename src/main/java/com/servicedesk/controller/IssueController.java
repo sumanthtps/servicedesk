@@ -63,8 +63,8 @@ public class IssueController {
 
         IssueFilter filter = new IssueFilter();
         filter.setProjectId(projectId);
-        if (status != null) filter.setStatus(Enum.valueOf(Status.class, status.toUpperCase()));
-        if (priority != null) filter.setPriority(Enum.valueOf(Priority.class, priority.toUpperCase()));
+        if (status != null) filter.setStatus(Status.valueOf(status.toUpperCase()));
+        if (priority != null) filter.setPriority(Priority.valueOf(priority.toUpperCase()));
         filter.setAssigneeId(assigneeId);
         filter.setTitleContains(title);
 
@@ -94,7 +94,7 @@ public class IssueController {
     }
 
     @PatchMapping("/{id}")
-    public IssueResponse updateIssueById(@PathVariable String id, @RequestBody IssueUpdateRequest updateRequest) {
+    public IssueResponse updateIssueById(@PathVariable String id, @Valid @RequestBody IssueUpdateRequest updateRequest) {
         final UUID issueId = UUID.fromString(id);
         UUID orgId = OrganizationContext.getOrgId();
         return issueService.updateIssue(orgId, issueId, updateRequest);
