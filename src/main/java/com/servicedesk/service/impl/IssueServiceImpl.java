@@ -124,6 +124,7 @@ public class IssueServiceImpl implements IssueService {
                 .map(Priority::valueOf)
                 .orElse(Priority.MEDIUM));
         issue.setStatus(Status.OPEN);
+        issue.setOrganizationId(orgId);
 
         Issue savedIssue = issueRepository.save(issue);
         return IssueResponse.fromEntity(savedIssue);
