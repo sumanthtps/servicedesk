@@ -1,6 +1,8 @@
 package com.servicedesk.api.dto.comment;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.servicedesk.domain.model.Comment;
+
 import java.time.Instant;
 
 public class CommentResponse {
@@ -15,6 +17,25 @@ public class CommentResponse {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
     private Instant updatedAt;
+
+    public CommentResponse(String id, String issueId, String authorId, String body, Instant createdAt, Instant updatedAt) {
+        this.id = id;
+        this.issueId = issueId;
+        this.authorId = authorId;
+        this.body = body;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public static CommentResponse fromEntity(Comment comment) {
+        return new CommentResponse(
+                String.valueOf(comment.getId()),
+                String.valueOf(comment.getIssueId()),
+                String.valueOf(comment.getAuthorId()),
+                comment.getBody(),
+                comment.getCreatedAt(),
+                comment.getUpdatedAt());
+    }
 
     public String getId() {
         return id;

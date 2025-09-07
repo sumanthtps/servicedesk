@@ -6,9 +6,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, UUID> {
-    Page<Comment> findByOrganizationIdAndIssueIdOrderByCreatedAtAsc(UUID orgId, UUID issueId, Pageable page);
+    Page<Comment> findByOrganizationIdAndIssueId(UUID orgId, UUID issueId, Pageable page);
+
+    Optional<Comment> findByIdAndOrganizationId(UUID id, UUID organizationId);
 }

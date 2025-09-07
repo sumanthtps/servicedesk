@@ -1,8 +1,10 @@
 # 1) What are JPA Specifications (and why use them)?
 
-Think of Specifications as composable query predicates. Instead of writing a different repository method for every filter combo (findByProjectIdAndStatus…, findByStatusAndPriority…, etc.), you:
+Think of Specifications as composable query predicates. Instead of writing a different repository method for every
+filter combo (findByProjectIdAndStatus…, findByStatusAndPriority…, etc.), you:
 
-Define tiny, single-purpose predicates (e.g., “status = ?”, “priority = ?”, “title contains ?”, “projectId = ?”, “orgId = ?”).
+Define tiny, single-purpose predicates (e.g., “status = ?”, “priority = ?”, “title contains ?”, “projectId = ?”,
+“orgId = ?”).
 
 Compose only the ones you need at runtime, based on which query params were provided.
 
@@ -18,7 +20,8 @@ Performance-friendly when paired with the right indexes (you already added them)
 
 ## Structure (no code)
 
-Create an IssueSpecifications helper with one method per filter (e.g., byOrganization(UUID orgId), byProject(UUID projectId), withStatus(Status s), withPriority(Priority p), titleContains(String q)).
+Create an IssueSpecifications helper with one method per filter (e.g., byOrganization(UUID orgId), byProject(UUID
+projectId), withStatus(Status s), withPriority(Priority p), titleContains(String q)).
 
 In the service layer, start with byOrganization(orgId) and conditionally chain the others only if the param is present.
 
@@ -31,3 +34,21 @@ Always include orgId in the spec first (tenant safety).
 For titleContains, ensure the predicate uses LOWER(title) so Postgres can use your LOWER(title) index.
 
 Don’t overdo “like” filters on unindexed columns.
+
+```declarative
+
+boolean existsByOrganizationIdAndProjectId(UUID orgId, UUID projectId);
+
+boolean existsByOrganizationIdAndId(UUID orgId, UUID id);
+
+Page<Issue> findByProjectId(Project project, Pageable pageable);
+
+Page<Issue> findByStatus(Status status, Pageable pageable);
+
+Page<Issue> findByPriority(Priority priority, Pageable pageable);
+
+Page<Issue> findByAssigneeId(User user, Pageable pageable);
+
+@Query("SELECT i FROM Issue i WHERE i.organizationId = :orgId AND LOWER(i.title) LIKE LOWER(CONCAT('%', :title, '%'))")
+Page<Issue> searchByTitle(@Param("orgId") UUID orgId, @Param("title") String title, Pageable pageable);
+```

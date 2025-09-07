@@ -1,6 +1,11 @@
 package com.servicedesk.domain.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+
 import java.util.UUID;
 
 @Entity
@@ -26,7 +31,8 @@ public class Comment extends Audited {
     @Column(name = "body", nullable = false, columnDefinition = "text")
     private String body; // 1..10000 enforced in DTO
 
-    protected Comment() {}
+    public Comment() {
+    }
 
     public Comment(UUID id, UUID organizationId, UUID issueId, UUID authorId, String body) {
         this.id = id;
@@ -36,11 +42,43 @@ public class Comment extends Audited {
         this.body = body;
     }
 
-    public UUID getId() { return id; }
-    public UUID getOrganizationId() { return organizationId; }
-    public UUID getIssueId() { return issueId; }
-    public UUID getAuthorId() { return authorId; }
-    public String getBody() { return body; }
+    public UUID getId() {
+        return id;
+    }
 
-    public void setBody(String body) { this.body = body; }
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public UUID getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(UUID organizationId) {
+        this.organizationId = organizationId;
+    }
+
+    public UUID getIssueId() {
+        return issueId;
+    }
+
+    public void setIssueId(UUID issueId) {
+        this.issueId = issueId;
+    }
+
+    public UUID getAuthorId() {
+        return authorId;
+    }
+
+    public void setAuthorId(UUID authorId) {
+        this.authorId = authorId;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
 }
