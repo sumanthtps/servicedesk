@@ -99,6 +99,7 @@ public class IssueServiceImpl implements IssueService {
                     "Project " + issueCreateRequest.getProjectId() + " is not found in the current organization " + orgId);
         }
         Issue issue = new Issue();
+        issue.setId(UUID.randomUUID());
         issue.setProjectId(UUID.fromString(issueCreateRequest.getProjectId()));
         if (StringUtils.hasText(issueCreateRequest.getTitle())) {
             issue.setTitle(issueCreateRequest.getTitle()

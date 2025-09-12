@@ -56,6 +56,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectResponse createProject(ProjectCreateRequest projectCreateRequest) {
         Project newProject = new Project();
+        newProject.setId(UUID.randomUUID());
         newProject.setName(projectCreateRequest.getName()
                 .trim());
         newProject.setKey(projectCreateRequest.getKey()

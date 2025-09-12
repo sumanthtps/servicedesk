@@ -9,9 +9,13 @@ import com.servicedesk.domain.model.Comment;
 import com.servicedesk.domain.repositories.CommentRepository;
 import com.servicedesk.domain.repositories.IssueRepository;
 import com.servicedesk.domain.repositories.UserRepository;
+import com.servicedesk.security.JwtUser;
 import com.servicedesk.service.CommentService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -50,13 +54,14 @@ public class CommentServiceImpl implements CommentService {
                 .isEmpty()) {
             throw new ResourceNotFoundException("Issue not found in this organization");
         }
-        UUID authorId = UUID.fromString(commentCreateRequest.getAuthorId());
+        UUID authorId = currentUserId();
         userRepository.findByIdAndOrganizationId(authorId, orgId)
                 .orElseThrow(() -> new InvalidOrganizationException("User doesn't have permission to create this comment"));
         Comment newComment = new Comment();
+        newComment.setId(UUID.randomUUID());
         newComment.setBody(commentCreateRequest.getBody()
                 .trim());
-        newComment.setAuthorId(UUID.fromString(commentCreateRequest.getAuthorId()));
+        newComment.setAuthorId(authorId);
         newComment.setIssueId(issueId);
         newComment.setOrganizationId(orgId);
 
@@ -64,13 +69,25 @@ public class CommentServiceImpl implements CommentService {
         return CommentResponse.fromEntity(savedComment);
     }
 
+    private UUID currentUserId() {
+        Authentication a = SecurityContextHolder.getContext()
+                .getAuthentication();
+        if (a == null || !(a.getPrincipal() instanceof JwtUser u)) {
+            throw new InvalidOrganizationException("Unauthenticated");
+        }
+        return u.getId();
+    }
+
     @Override
     public CommentResponse updateComment(UUID orgId, UUID commentId, CommentUpdateRequest commentUpdateRequest) {
-        UUID authorId = UUID.fromString(commentUpdateRequest.getAuthorId());
+        UUID authorId = currentUserId();
         userRepository.findByIdAndOrganizationId(authorId, orgId)
                 .orElseThrow(() -> new InvalidOrganizationException("User doesn't have permission to update this comment"));
         Comment existingComment = commentRepository.findByIdAndOrganizationId(commentId, orgId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found in the current organization"));
+        if (!authorId.equals(existingComment.getAuthorId())) {
+            throw new InvalidOrganizationException("You cannot edit this comment");
+        }
         existingComment.setBody(commentUpdateRequest.getBody()
                 .trim());
 
@@ -79,6 +96,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('ORG_ADMIN')")
     public void deleteComment(UUID orgId, UUID commentId) {
         Comment existingComment = commentRepository.findByIdAndOrganizationId(commentId, orgId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found in the current organization"));

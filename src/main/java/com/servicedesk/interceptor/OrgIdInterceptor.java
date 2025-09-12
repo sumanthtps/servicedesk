@@ -14,14 +14,20 @@ public class OrgIdInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String orgIdHeader = request.getHeader("X-Org-Id");
 
-        if(orgIdHeader == null || orgIdHeader.isBlank()) {
+        String path = request.getRequestURI();
+        if (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs")) {
+            return true; // allow Swagger UI without X-Org-Id
+        }
+
+        if (orgIdHeader == null || orgIdHeader.isBlank()) {
             throw new IllegalArgumentException("Missing X-Org-Id header");
         }
 
         try {
             UUID orgId = UUID.fromString(orgIdHeader);
             OrganizationContext.setOrgId(orgId);
-        } catch (IllegalArgumentException exception) {
+        }
+        catch (IllegalArgumentException exception) {
             throw new IllegalArgumentException("Invalid X-Org-Id UUID format");
         }
         return true;
